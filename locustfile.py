@@ -17,13 +17,14 @@ def geth_locust_task(f):
         try:
             result = f(*args, **kwargs)
         except Exception as e:
-            raise
+            print('Exception in {}'.format(f.__name__))
             total_time = int((time() - start_time) * 1000)
             events.request_failure.fire(
                 request_type="jsonrpc",
                 name=f.__name__,
                 response_time=total_time,
                 exception=e)
+            return False
         else:
             total_time = int((time() - start_time) * 1000)
             events.request_success.fire(
@@ -43,12 +44,12 @@ class EthLocust(Locust):
     '''
     def __init__(self, *args, **kwargs):
         super(EthLocust, self).__init__(*args, **kwargs)
-        self.client = EthJsonRpc(self.host, self.port)
+        server, port = self.host.split(':')
+        self.client = EthJsonRpc(server, port)
 
 
 class EthUser(EthLocust):
-    host = 'geth-load-testing.infura.io'
-    port = 80
+    host = 'localhost:8545'
     test_address = '0xea674fdde714fd979de3edf0f56aa9716b898ec8'
     min_wait = 100
     max_wait = 1000

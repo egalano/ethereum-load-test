@@ -1,4 +1,4 @@
-FROM python:3-onbuild
-ENV RPC_HOST "geth-load-testing.infura.io"
-ENV RPC_PORT 80
-CMD [ "locust", "--host", "${RPC_HOST}:${RPC_PORT}" ]
+FROM python:2-onbuild
+ENV RPC_HOST localhost:8545
+EXPOSE 8089
+CMD locust --host $RPC_HOST
