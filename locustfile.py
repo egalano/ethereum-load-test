@@ -13,7 +13,7 @@ def geth_locust_task(f):
     '''
     @wraps(f)
     def wrapped(*args, **kwargs):
-        start_time = time.time()
+        start_time = time()
         try:
             result = f(*args, **kwargs)
         except Exception as e:
@@ -25,7 +25,7 @@ def geth_locust_task(f):
                 response_time=total_time,
                 exception=e)
         else:
-            total_time = int((time.time() - start_time) * 1000)
+            total_time = int((time() - start_time) * 1000)
             events.request_success.fire(
                 request_type="jsonrpc",
                 name=f.__name__,
@@ -43,12 +43,12 @@ class EthLocust(Locust):
     '''
     def __init__(self, *args, **kwargs):
         super(EthLocust, self).__init__(*args, **kwargs)
-        server, port = self.host.split(':')
-        self.client = EthJsonRpc(server, port)
+        self.client = EthJsonRpc(self.host, self.port)
 
 
 class EthUser(EthLocust):
-    host = 'geth-load-testing.infura.io:80'
+    host = 'geth-load-testing.infura.io'
+    port = 80
     test_address = '0xea674fdde714fd979de3edf0f56aa9716b898ec8'
     min_wait = 100
     max_wait = 1000
@@ -57,6 +57,6 @@ class EthUser(EthLocust):
         @geth_locust_task
         @task
         def get_balance(self):
-            target_addr = self.test_address
+            target_addr = EthUser.test_address
             bal = self.client.eth_getBalance(target_addr)
-            print(bal)
+            return bal
