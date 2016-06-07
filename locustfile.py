@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 from functools import wraps
-import time
+from time import time
 from ethjsonrpc import EthJsonRpc
-from locust import Locust, TaskSet, task, events
+from locust import Locust, TaskSet, events, task
 
 
 def geth_locust_task(f):
@@ -18,7 +18,7 @@ def geth_locust_task(f):
             result = f(*args, **kwargs)
         except Exception as e:
             raise
-            total_time = int((time.time() - start_time) * 1000)
+            total_time = int((time() - start_time) * 1000)
             events.request_failure.fire(
                 request_type="jsonrpc",
                 name=f.__name__,
@@ -36,11 +36,11 @@ def geth_locust_task(f):
 
 
 class EthLocust(Locust):
-    """
+    '''
     This is the abstract Locust class which should be subclassed.
-    It provides an XML-RPC client that can be used to make XML-RPC
+    It provides an Ethereum JSON-RPC client that can be used for
     requests that will be tracked in Locust's statistics.
-    """
+    '''
     def __init__(self, *args, **kwargs):
         super(EthLocust, self).__init__(*args, **kwargs)
         server, port = self.host.split(':')
@@ -57,6 +57,6 @@ class EthUser(EthLocust):
         @geth_locust_task
         @task
         def get_balance(self):
-            target_addr = test_address
+            target_addr = self.test_address
             bal = self.client.eth_getBalance(target_addr)
             print(bal)
