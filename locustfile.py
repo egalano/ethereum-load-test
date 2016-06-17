@@ -61,7 +61,11 @@ class EthLocust(Locust):
         while len(addrs) < count:
             block = self.client.eth_getBlockByHash(block['parentHash'])
             if block['transactions'] is not None:
-                addrs += [t['to'] for t in block['transactions']]
+                addrs += [
+                    t['to']
+                    for t in block['transactions']
+                    if t['to'] is not None
+                ]
         # Use a set to dedupe commonly used addresses (coinbase, poloniex, etc)
         return list(set(addrs))
 
