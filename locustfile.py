@@ -47,7 +47,6 @@ class EthLocust(Locust):
         super(EthLocust, self).__init__(*args, **kwargs)
         server, port = self.host.split(':')
         self.client = EthJsonRpc(server, port)
-        print("Generating list of target addresses...")
         self.addresses = self.get_target_address_list()
 
     def get_target_address_list(self, count=100):
