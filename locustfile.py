@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from functools import wraps
+import random
 from time import time
 from ethjsonrpc import EthJsonRpc
 from locust import Locust, TaskSet, events, task
@@ -46,11 +47,27 @@ class EthLocust(Locust):
         super(EthLocust, self).__init__(*args, **kwargs)
         server, port = self.host.split(':')
         self.client = EthJsonRpc(server, port)
+        print("Generating list of target addresses...")
+        self.addresses = self.get_target_address_list()
+
+    def get_target_address_list(self, count=100):
+        '''
+        As part of the initialization, we build up a list of 1k addresses
+        which will be the targets of the getBal call. We do it as part of the
+        initialization so that we dont slow down the concurrent tests.
+        '''
+        addrs = []
+        block = self.client.eth_getBlockByNumber()
+        while len(addrs) < count:
+            block = self.client.eth_getBlockByHash(block['parentHash'])
+            if block['transactions'] is not None:
+                addrs += [t['to'] for t in block['transactions']]
+        # Use a set to dedupe commonly used addresses (coinbase, poloniex, etc)
+        return list(set(addrs))
 
 
 class EthUser(EthLocust):
     host = 'localhost:8545'
-    test_address = '0xea674fdde714fd979de3edf0f56aa9716b898ec8'
     min_wait = 100
     max_wait = 1000
 
@@ -58,6 +75,6 @@ class EthUser(EthLocust):
         @geth_locust_task
         @task
         def get_balance(self):
-            target_addr = EthUser.test_address
+            target_addr = random.choice(self.locust.addresses)
             bal = self.client.eth_getBalance(target_addr)
             return bal
