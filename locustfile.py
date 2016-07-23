@@ -17,6 +17,7 @@ def geth_locust_task(f):
         start_time = time()
         try:
             result = f(*args, **kwargs)
+            print(result)
         except Exception as e:
             print('Exception in {}'.format(f.__name__))
             total_time = int((time() - start_time) * 1000)
@@ -46,7 +47,11 @@ class EthLocust(Locust):
     def __init__(self, *args, **kwargs):
         super(EthLocust, self).__init__(*args, **kwargs)
         server, port = self.host.split(':')
-        self.client = EthJsonRpc(server, port)
+        if int(port) == 443:
+            tls_flag = True
+        else:
+            tls_flag = False
+        self.client = EthJsonRpc(server, port, tls=tls_flag)
         self.addresses = self.get_target_address_list()
 
     def get_target_address_list(self, count=100):

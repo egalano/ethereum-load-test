@@ -1,2 +1,3 @@
 ethjsonrpc==0.2.8
 locustio==0.7.5
+urllib3[secure]
